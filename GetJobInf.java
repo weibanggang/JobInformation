@@ -160,7 +160,7 @@ public class GetJobInf {
         for (int j=1;j<=pagesize;j++){  //获取所有的网页id
             pn++;
             String rs2=getJson(url);
-            List<Integer> posid2=JsonPath.read(rs,"$.content.positionResult.result[*].positionId");
+            List<Integer> posid2=JsonPath.read(rs2,"$.content.positionResult.result[*].positionId");
             posid.addAll(posid2); //添加解析的id到第一个list
         }
 

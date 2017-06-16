@@ -36,19 +36,35 @@ public class GetJobInf {
     static List<String> joburls;
     static List<Job> jobList=new ArrayList<>();
 
-    public static void main(String[] args) throws IOException, WriteException, BiffException, InterruptedException {
 
+    public static void main(String[] args) throws WriteException, BiffException, InterruptedException, IOException {
+
+        String[] city={"全国","广州","深圳"};
+
+        String[] kd={"Java","PHP","web前端","全栈工程师"};
+
+        GetJobInf getJobInf =new GetJobInf();
+
+        //getJobInf.startGetjob(city[2],kd[1]);
+        getJobInf.startGetjob(city[1],kd[0]);
+        /*for (int i=0;i<city.length;i++){
+            for (int j=0;j<kd.length;j++){
+                getJobInf.startGetjob(city[i],kd[j]);
+            }
+        }*/
+
+
+    }
+
+    public void startGetjob(String city,String kd) throws WriteException, IOException, BiffException, InterruptedException {
         String gj="应届毕业生";
-        String city="全国";
-        String kd="Python";
-
         JobCondition.setGj(gj);
         JobCondition.setCity(city);
         JobCondition.setKd(kd);
         JobCondition.setFilename(kd+"_"+gj+"_"+city+".xls");  //文件名
-        GetJobInf getJobInf=new GetJobInf();
+        GetJobInf getJobInf =new GetJobInf();
 
-         joburls=getJobInf.getJobUrls(JobCondition.gj,JobCondition.city,JobCondition.kd);
+        joburls=getJobInf.getJobUrls(JobCondition.gj,JobCondition.city,JobCondition.kd);
 
 
         long start=System.currentTimeMillis();
@@ -59,12 +75,12 @@ public class GetJobInf {
         for (int i=0;i<joburls.size();i++){
             GetThread getThread=new GetThread(joburls.get(i),latch);
             getThread.start();
-            threads.add(getThread);
+            threads.add(getThread);  //添加到线程列表
         }
 
         latch.await();//等待线程结束
 
-        for (GetThread getThread:threads){
+        for (GetThread getThread:threads){  //获取线程的得到的值
             jobList.add(getThread.job);
         }
 
@@ -73,13 +89,10 @@ public class GetJobInf {
         }*/
 
         long end=System.currentTimeMillis();
-        System.out.println(end-start);
+        System.out.println(end-start+"毫秒");
         getJobInf.initExcel();
         getJobInf.insertExcel(jobList);
-
-
     }
-
 
     void initExcel() throws IOException, WriteException {
         WritableWorkbook writeBook = Workbook.createWorkbook(new File(JobCondition.filename));
@@ -133,7 +146,7 @@ public class GetJobInf {
 
         if (gj.equals("")){
 
-            url="https://www.lagou.com/jobs/positionAjax.json?px=default&city="+city+"&needAddtionalResult=false&first=false&pn="+pn+"&kd="+kd;
+            url="http://www.lagou.com/jobs/positionAjax.json?px=default&city="+city+"&needAddtionalResult=false&first=false&pn="+pn+"&kd="+kd;
 
         }else {
 
@@ -153,12 +166,13 @@ public class GetJobInf {
         }
 
         System.out.println(total);
-        //System.out.println(rs);
+       // System.out.println(rs);
 
         List<Integer> posid=JsonPath.read(rs,"$.content.positionResult.result[*].positionId");//获取网页id
 
         for (int j=1;j<=pagesize;j++){  //获取所有的网页id
-            pn++;
+            pn++;  //更新页数
+            url="https://www.lagou.com/jobs/positionAjax.json?gj="+gj+"&px=default&city="+city+"&needAddtionalResult=false&first=false&pn="+pn+"&kd="+kd;
             String rs2=getJson(url);
             List<Integer> posid2=JsonPath.read(rs2,"$.content.positionResult.result[*].positionId");
             posid.addAll(posid2); //添加解析的id到第一个list
@@ -213,7 +227,7 @@ public class GetJobInf {
             connection.setRequestProperty("Host","www.lagou.com");
             connection.setRequestProperty("Connection","keep-alive");
             connection.setRequestProperty("User-Agent","Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36");
-            connection.setRequestProperty("Cookie","user_trace_token=20170613231153-cab4a0ae19044241a78f862a01f538ab; LGUID=20170613231201-a6a4d5dd-504a-11e7-9b38-5254005c3644; index_location_city=%E6%B7%B1%E5%9C%B3; JSESSIONID=ABAAABAAAHAAAFDF4305BA75AFD92CCBA526F196E918378; X_HTTP_TOKEN=22a5137c4a6f29a2ebb6032760214008; _ga=GA1.2.1967947591.1497366717; _gid=GA1.2.2036779968.1497366717; _gat=1; Hm_lvt_4233e74dff0ae5bd0a3d81c6ccf756e6=1497366721,1497409696,1497443385,1497487138; Hm_lpvt_4233e74dff0ae5bd0a3d81c6ccf756e6=1497537506; _ga=GA1.3.1967947591.1497366717; LGSID=20170615212347-dccea570-51cd-11e7-9c5e-5254005c3644; LGRID=20170615223826-4ab2e4fc-51d8-11e7-9c5e-5254005c3644");
+            connection.setRequestProperty("Cookie","user_trace_token=20170613231153-cab4a0ae19044241a78f862a01f538ab; LGUID=20170613231201-a6a4d5dd-504a-11e7-9b38-5254005c3644; PRE_UTM=; PRE_HOST=; PRE_SITE=; PRE_LAND=https%3A%2F%2Fwww.lagou.com%2F; JSESSIONID=ABAAABAAAGFABEF449D376A753405DEDC5A10EA197823A1; _putrc=F749393120E661D0; login=true; unick=%E6%9D%8E%E6%96%87%E5%8D%8E; showExpriedIndex=1; showExpriedCompanyHome=1; showExpriedMyPublish=1; hasDeliver=0; _gat=1; TG-TRACK-CODE=index_navigation; _gid=GA1.2.2036779968.1497366717; _ga=GA1.2.1967947591.1497366717; Hm_lvt_4233e74dff0ae5bd0a3d81c6ccf756e6=1497409696,1497443385,1497487138,1497579371; Hm_lpvt_4233e74dff0ae5bd0a3d81c6ccf756e6=1497605523; LGSID=20170616171215-e3ed3045-5273-11e7-9c6d-5254005c3644; LGRID=20170616173202-a765e1f8-5276-11e7-9c6d-5254005c3644; SEARCH_ID=d0b2147d7c6d4b3bb3a2516d1159679d; index_location_city=%E6%B7%B1%E5%9C%B3");
             //connection.setReadTimeout(8000);
             in = new BufferedReader(new InputStreamReader(
                     connection.getInputStream()));
